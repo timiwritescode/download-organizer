@@ -35,7 +35,7 @@ class FileMoverWindow:
         option_btn.grid(column=1, row=2, sticky="se", padx=10, pady=10)  # Bottom-right position
 
         # destination options buttons
-        self.options_buttons = None
+        self.options_buttons: DestinationOptionButtons | None = None
 
         # Countdown Label
         self.countdown_label = CountdownLabel(self.mainframe, timeout)
@@ -59,6 +59,8 @@ class FileMoverWindow:
         else:
             self.options_buttons = None
 
+    def get_selected_path(self):
+        return self.options_buttons.get_selected_path()
 
 # Example Usage
 if __name__ == "__main__":

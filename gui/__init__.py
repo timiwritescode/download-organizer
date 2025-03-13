@@ -1,0 +1,1 @@
+SELECTED_PATH = None
