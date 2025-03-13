@@ -1,4 +1,5 @@
 from queue import Queue
+from traceback import format_exc
 from tracemalloc import take_snapshot
 from .node import Directory, File
 from .events import event_queue, EventTypes, Event
@@ -21,22 +22,22 @@ class Observatory:
         return self._event_queue
 
     def _watch_directory(self):
+        try:
+            current_snapshot = self._take_snap_shot()
+            while not self._running.is_set():
+                time.sleep(2)
+                try:
+                    new_snapshot = self._take_snap_shot()
+                    if current_snapshot != new_snapshot:
+                        self._compare_snapshot(current_snapshot, new_snapshot)
+                        # something has changed, compare the two snap shots
 
-        current_snapshot = self._take_snap_shot()
-        while not self._running.is_set():
-            time.sleep(2)
-            # if not event_queue.empty():
-            #     event = event_queue.get()
-            #     #  check queue
-            #     # print(f"Event: {event._event_type}, Modification: {event._modification}")
-            #     event_queue.task_done()
-
-            new_snapshot = self._take_snap_shot()
-            if current_snapshot != new_snapshot:
-                self._compare_snapshot(current_snapshot, new_snapshot)
-                # something has changed, compare the two snap shots
-
-                current_snapshot = new_snapshot
+                        current_snapshot = new_snapshot
+                except FileNotFoundError:
+                    print("File not found")
+                    continue
+        except FileNotFoundError as e:
+            print("File not found")
 
 
     def _take_snap_shot(self):
@@ -62,7 +63,7 @@ class Observatory:
 
 
     def start(self):
-        """Watchc spicified directory in different thread"""
+        """Watch spicified directory in different thread"""
         self._running.clear()
         self._thread = threading.Thread(target=self._watch_directory, daemon=True)
         self._thread.start()
