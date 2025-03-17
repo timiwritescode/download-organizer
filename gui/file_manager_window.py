@@ -1,28 +1,16 @@
 import tkinter as tk
 from tkinter import ttk
+
 from gui.components import *
+from gui import WindowBase, BaseFrame
 
 
-class FileMoverWindow:
+class FileMoverWindow(WindowBase):
     def __init__(self, filename: str, timeout: int = 10):
-        self.root = tk.Tk()
-        self.root.title("File Organizer")
-        self.root.geometry("400x200")  # Set initial size
-        self.root.minsize(400, 200)
-
+        super().__init__(title="File Organizer")
         self.timeout = timeout
-
-        # Make the window resizable and keep layout balanced
-        self.root.rowconfigure(0, weight=1)
-        self.root.columnconfigure(0, weight=1)
-
         # Main Frame
-        self.mainframe = ttk.Frame(self.root, padding=15, borderwidth=5, relief="ridge")
-        self.mainframe.grid(column=0, row=0, sticky="nsew")
-
-        # Allow expansion of rows & columns
-        self.mainframe.columnconfigure(1, weight=1)
-        self.mainframe.rowconfigure(2, weight=1)
+        self.mainframe = BaseFrame(self)
 
         # Label (Centered)
         custom_font = ("Arial", 13, "bold")
@@ -46,8 +34,6 @@ class FileMoverWindow:
 
         self.countdown_label.start_countdown()
 
-    def open_window(self):
-        self.root.mainloop()
 
 
 
@@ -59,8 +45,6 @@ class FileMoverWindow:
         else:
             self.options_buttons = None
 
-    def get_selected_path(self):
-        return self.options_buttons.get_selected_path()
 
 # Example Usage
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 from tkinter import ttk
 from tkinter.filedialog import askdirectory
-
+from gui import directory_changes
 
 class DestinationOptionButtons:
     def __init__(self, parent, row, column):
@@ -21,10 +21,11 @@ class DestinationOptionButtons:
         self.btn2.grid(column=column, row=row + 3, sticky="ew", padx=5, pady=2)
 
     def set_selected_filepath(self):
-        self._selectedPath = askdirectory()
+        selected_dir = askdirectory()
+        directory_changes.set_selected_dir(selected_dir)
 
-    def get_selected_path(self):
-        return self._selectedPath
+    # def get_selected_path(self):
+    #     return self._selectedPath
 
 
 
