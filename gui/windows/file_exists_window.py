@@ -54,7 +54,7 @@ class FileExistsWindow(WindowBase):
         self.action_button: ttk.Button | None = None
 
 
-        self.cancel_button = ttk.Button(self.frame, text="cancel", cursor="hand2", command=self.close_window)
+        self.cancel_button = ttk.Button(self.frame, text="cancel", cursor="hand2", command=self.handle_cancel_button_clicked_event)
         self.cancel_button.grid(
             column=0,
             row=2,
@@ -77,6 +77,10 @@ class FileExistsWindow(WindowBase):
         self.destroy()
 
 
+    def handle_cancel_button_clicked_event(self):
+        directory_changes.set_write_option(OverwriteOptions.KEEP_BOTH)
+        self.destroy()
+
     def create_dropdown_options_button(self, selected_option):
         """Create or update button with selected dropdown option"""
 
@@ -96,9 +100,6 @@ class FileExistsWindow(WindowBase):
                 padx=10,
                 pady=10
             )
-
-    def close_window(self):
-        self.destroy()
 
 
 if __name__ == "__main__":
