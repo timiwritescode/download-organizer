@@ -8,8 +8,10 @@ class OverwriteOptions(Enum):
     KEEP_BOTH = "keep_both"
 
 class DirectoryModifications:
-    _SELECTED_dir = None
-    _SELECTED_WRITE_OPTION: OverwriteOptions = None
+    _SELECTED_dir: str | None = None
+    _SELECTED_WRITE_OPTION: OverwriteOptions | None = None
+
+
     def set_selected_dir(self, dir: str):
         self._SELECTED_dir = dir
 
@@ -28,6 +30,10 @@ class DirectoryModifications:
     def get_selected_dir(self):
         return self._SELECTED_dir
 
+    def clear_data_cache(self):
+        self._SELECTED_dir = None
+        self._SELECTED_WRITE_OPTION = None
+        print("Cleared data cache")
 
 directory_changes = DirectoryModifications()
 
