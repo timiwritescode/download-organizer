@@ -1,77 +1,60 @@
 import queue
 import time
-import sys
-import shutil
 import os
-import re
-from os.path import curdir
-from traceback import format_exception
+from pathlib import Path
 
-from gui import directory_changes, OverwriteOptions
-from gui.windows.file_exists_window import FileExistsWindow
+from traceback import format_exception
+from config import config
+from mime_types import get_file_type, get_mime_type_from_name
+
+from gui import directory_changes
+from util import move_file
 from watchtower.observatory import Observatory
 from gui.file_manager_window import FileMoverWindow
 
+def get_default_file_destination(file_extension: str) -> str:
+    file_type = get_file_type(file_extension)
+    home_directory = str(Path.home())
 
-def add_number_to_file_name(filename: str, destination_directory: str):
-    # Get the number of files with that name,
-    name_pattern = filename.split(".")[0].split("(")[0]
-    pattern = rf"^{name_pattern}(\(\d+)?"
-
-    strip_extension = lambda x : x.split(".")[0]
-    dir_listing = map(strip_extension, os.listdir(destination_directory))
-    matched_filenames = [i.split("(")[0]
-                         for i in dir_listing if re.match(pattern, i)]
-    print(matched_filenames)
+    return home_directory + config["directories"][file_type]
 
 
-    # increment the count
-    name_and_extension = filename.split(".")
-    file_extension = "" if len(name_and_extension) < 2 else f".{name_and_extension[1]}"
-    name_of_file = name_and_extension[0]
+def check_default_directories_specified_exist():
+    home_dir = str(Path.home())
+    audio_files_path = home_dir + config["directories"]["audio"]
+    doc_files_path = home_dir + config["directories"]["document"]
+    image_files_path = home_dir + config["directories"]["image"]
+    video_files_path = home_dir + config["directories"]["video"]
 
-    return f"{name_of_file}({len(matched_filenames)}){file_extension}"
+    if os.path.exists(audio_files_path) is not True:
+        raise Exception(get_directory_error_message("Audio", audio_files_path))
 
+    if os.path.exists(doc_files_path) is not True:
+        raise Exception(get_directory_error_message("Documents", doc_files_path))
 
+    if os.path.exists(image_files_path) is not True:
+        raise Exception(get_directory_error_message("Images/Pictures", image_files_path))
 
-
-def move_file(filepath: str, destination: str, filename: str):
-    try:
-        shutil.move(filepath, destination)
-        return filename
-    except shutil.Error as err:
-        if str(err.__str__()).endswith("already exists"):
-            # prompt
-
-            file_exist_prompt_gui = FileExistsWindow(filename, destination)
-            file_exist_prompt_gui.open_window()
-            # overwrite
-            if directory_changes.get_write_option() == OverwriteOptions.KEEP_BOTH:
-                # keep both files
-                updated_filename = add_number_to_file_name(filename, destination)
-                destination = destination + "/" + updated_filename
-                shutil.move(filepath, destination)
-                return updated_filename
-            else:
-                # overwrite
-                destination_file = destination + "/" + filepath.split("/")[-1]
-                shutil.move(filepath, destination_file)
-                return filename
-
-    
+    if os.path.exists(video_files_path) is not True:
+        raise Exception(get_directory_error_message("Videos", video_files_path))
 
 
+def get_directory_error_message(dir_type: str, path: str) -> str:
+    return f"{dir_type} directory {path} specified does not exist"
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        raise Exception("Path not specified")
+    if config["watch_dir"] is None:
+        raise Exception(f"Directory to watch not specified in config")
 
-    dir_to_watch = sys.argv[1]
+    dir_to_watch = str(Path.home()) + config["watch_dir"]
     if not os.path.exists(dir_to_watch):
         raise Exception(f"Directory {dir_to_watch} does not exist")
 
     if not os.path.isdir(dir_to_watch):
         raise Exception(f"{dir_to_watch} is not a directory")
+
+    check_default_directories_specified_exist()
+
     observatory = Observatory(dir_to_watch)
 
     try:
@@ -91,8 +74,17 @@ if __name__ == "__main__":
                         selected_dir_path = directory_changes.get_selected_dir()
 
                         if selected_dir_path is not None:
-                            write_name = move_file(file_to_move, selected_dir_path, filename)
-                            print(f"Moved file {filename} to {selected_dir_path}/{write_name}")
+                            if selected_dir_path == "default":
+                                extension = get_mime_type_from_name(filename)
+                                destination = get_default_file_destination(extension)
+
+                                write_name = move_file(file_to_move, destination, filename)
+                                print(f"Moved file {filename} to {destination}/{write_name}")
+                            else:
+                                write_name = move_file(file_to_move, selected_dir_path, filename)
+                                print(f"Moved file {filename} to {selected_dir_path}/{write_name}")
+
+
 
                     # clear data cache
                     directory_changes.clear_data_cache()

@@ -41,7 +41,7 @@ class FileMoverWindow(WindowBase):
         """Creates destination buttons"""
         self.countdown_label.stop_countdown()
         if not self.options_buttons:
-            self.options_buttons = DestinationOptionButtons(self.mainframe, row=5, column=3)
+            self.options_buttons = DestinationOptionButtons(self.mainframe, self, row=5, column=3)
         else:
             self.options_buttons = None
 
